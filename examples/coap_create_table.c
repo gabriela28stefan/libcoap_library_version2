@@ -28,8 +28,8 @@ int main(int argc, char* argv[])
    }
 
    /* Create SQL statement */
-   sql = "CREATE TABLE DATA("  \
-         "MAC CHAR(20) PRIMARY KEY     NOT NULL," \
+   sql = "CREATE TABLE COAP("  \
+         "MAC CHAR(20) NOT NULL," \
          "TEMP            INT    NOT NULL," \
          "LIGHT           INT    NOT NULL);";
 

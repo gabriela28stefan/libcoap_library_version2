@@ -3,7 +3,9 @@
 
 int open_database();
 
-char* create_sql_statement(int temp, int light);
+int create_insert_sql_statement(char *sql, char *mac, int temp, int light);
+
+int create_select_sql_statement(char* sql);
 
 int exec_sql_statement(char *sql);
 

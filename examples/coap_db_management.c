@@ -34,24 +34,35 @@ int open_database() {
 }
 
 
-char * create_sql_statement(int temp, int light) {
+int create_insert_sql_statement(char* sql, char* mac, int temp, int light) {
 
 	/* Create SQL statement */
-	   char sql[100];
-
-	   int index = 1;
 	   char aux_buffer[50];
 
-	   sprintf(aux_buffer, "VALUES (%d, %d, %d);", index, temp, light);
-	   char *insert = "INSERT INTO SENSORS_DATA (ID,TEMP,LIGHT) ";
+	   if (!sql)
+		   return -1;
+
+	   char *insert = "INSERT INTO COAP (MAC,TEMP,LIGHT) ";
+	   sprintf(aux_buffer, "VALUES ('%s', %d, %d);", mac, temp, light);
+
 	   strcpy(sql, insert);
 	   strcat(sql, aux_buffer);
 
-	   printf("SQL string is: %s\n", sql);
-	   return sql;
+	   return 0;
 }
 
 
+int create_select_sql_statement(char* sql) {
+
+	/* Create SQL statement */
+	   char aux_buffer[50];
+
+	   if (!sql)
+		   return -1;
+
+	   sql = "SELECT * FROM COAP";
+	   return 0;
+}
 
 int exec_sql_statement(char *sql) {
 
@@ -65,7 +76,7 @@ int exec_sql_statement(char *sql) {
 	    sqlite3_free(zErrMsg);
 	    return -1;
 	} else {
-		fprintf(stdout, "Records created successfully\n");
+		fprintf(stdout, "Operation completed successfully\n");
 	}
 	return 0;
 }

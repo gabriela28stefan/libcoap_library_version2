@@ -70,14 +70,14 @@ coap_tick_t obs_wait = 0;               /* timeout for current subscription */
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
-#define MAC_SIZE	30
+#define MAC_SIZE	20
 
 /* added struct for temp, light*/
 typedef struct data {
-	char mac_addr[MAC_SIZE];
-	unsigned int id;
-	unsigned int temp;
-	unsigned int light;
+	char 			mac_addr[MAC_SIZE];
+	unsigned int 	id;
+	unsigned int 	temp;
+	unsigned int 	light;
 } data_t;
 
 //handler for our database
@@ -97,9 +97,9 @@ static void parse_data(data_t* sensor_data, const unsigned char* buf){
 
 
 	token = strtok(tmp, ",");
-	printf("Received from node with MAC address: %s\n", token);
-	//strcpy(sensor_data->mac_addr, token);//FIXME!!!
-	//printf("Received from node with MAC address: %s\n", sensor_data->mac_addr);
+	//printf("Received from node with MAC address: %s\n", token);
+	strcpy(sensor_data->mac_addr, token);//FIXME!!!
+	printf("Received from node with MAC address: %s\n", sensor_data->mac_addr);
 
 	token = strtok(NULL, ",");
 	sensor_data->id = strtol(token, (char **)NULL, 10);
@@ -550,22 +550,18 @@ message_handler(struct coap_context_t *ctx,
         if (coap_get_data(received, &len, &databuf))
         	append_to_output(databuf, len);
 
-        data_t *from_sensors;
-        parse_data(from_sensors,databuf);
-        printf("MAC: %s ID: %u temp: %u and light: %u\n", from_sensors->mac_addr, from_sensors->id, from_sensors->temp, from_sensors->light);
+       data_t from_sensors;
+       /* parse data from sensors */
+       parse_data(&from_sensors,databuf);
+       printf("MAC: %s ID: %u temp: %u and light: %u\n", from_sensors.mac_addr, from_sensors.id, from_sensors.temp, from_sensors.light);
 
-        //char * sql_string = malloc(100 * sizeof(char));
-        //sql_string = create_sql_statement(from_sensors->temp, from_sensors->light);
+       /* create insert query */
        char sql[100];
-       char aux_buffer[50];
-
-       sprintf(aux_buffer, "VALUES (%s, %d, %d);", from_sensors->mac_addr, from_sensors->temp, from_sensors->light);
- 	   char *insert = "INSERT INTO DATA (MAC,TEMP,LIGHT) ";
- 	   strcpy(sql, insert);
- 	   strcat(sql, aux_buffer);
+       create_insert_sql_statement(sql, from_sensors.mac_addr, from_sensors.temp, from_sensors.light);
 
  	   printf("SQL string is: %s\n", sql);
- 	   //exec_sql_statement(sql);
+ 	   /* execute insert*/
+ 	   exec_sql_statement(sql);
 
  	   /* closing the database */
  	   close_database();
