@@ -196,7 +196,7 @@ coap_new_request(coap_context_t *ctx,
     debug("cannot add token to request\n");
   }
 
-//  printf("[coap_new_request] PDU is: \n");
+
 //  coap_show_pdu(pdu);
 
   if (options) {
@@ -557,9 +557,13 @@ message_handler(struct coap_context_t *ctx,
 
        /* create insert query */
        char sql[100];
-       create_insert_sql_statement(sql, from_sensors.mac_addr, from_sensors.temp, from_sensors.light);
+       char current_t[30];
+
+       get_timestamp(current_t);
+       create_insert_sql_statement(sql, from_sensors.mac_addr, from_sensors.temp, from_sensors.light, current_t);
 
  	   printf("SQL string is: %s\n", sql);
+
  	   /* execute insert*/
  	   exec_sql_statement(sql);
 

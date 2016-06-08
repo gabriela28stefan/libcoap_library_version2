@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <sqlite3.h>
 
 #include "coap_db_management.h"
@@ -34,16 +35,16 @@ int open_database() {
 }
 
 
-int create_insert_sql_statement(char* sql, char* mac, int temp, int light) {
+int create_insert_sql_statement(char* sql, char* mac, int temp, int light, char* timestamp) {
 
 	/* Create SQL statement */
-	   char aux_buffer[50];
+	   char aux_buffer[80];
 
 	   if (!sql)
 		   return -1;
 
-	   char *insert = "INSERT INTO COAP (MAC,TEMP,LIGHT) ";
-	   sprintf(aux_buffer, "VALUES ('%s', %d, %d);", mac, temp, light);
+	   char *insert = "INSERT INTO COAP_DATA (MAC,TEMP,LIGHT,TIME) ";
+	   sprintf(aux_buffer, "VALUES ('%s', %d, %d, '%s');", mac, temp, light, timestamp);
 
 	   strcpy(sql, insert);
 	   strcat(sql, aux_buffer);
@@ -55,8 +56,6 @@ int create_insert_sql_statement(char* sql, char* mac, int temp, int light) {
 int create_select_sql_statement(char* sql) {
 
 	/* Create SQL statement */
-	   char aux_buffer[50];
-
 	   if (!sql)
 		   return -1;
 
@@ -86,4 +85,17 @@ void close_database() {
 
 	printf("Closing database....\n");
 	sqlite3_close(db);
+}
+
+
+void get_timestamp(char *current_time) {
+
+
+
+	time_t t = time(NULL);
+	struct tm * p = localtime(&t);
+
+	strftime(current_time, 100, "%a %b %d %H:%M:%S %Y", p);
+
+	printf("%s of len: %d\n", current_time, strlen(current_time));
 }

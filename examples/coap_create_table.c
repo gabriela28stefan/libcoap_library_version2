@@ -28,10 +28,11 @@ int main(int argc, char* argv[])
    }
 
    /* Create SQL statement */
-   sql = "CREATE TABLE COAP("  \
-         "MAC CHAR(20) NOT NULL," \
+   sql = "CREATE TABLE COAP_DATA("  \
+         "MAC        CHAR(20)    NOT NULL," \
          "TEMP            INT    NOT NULL," \
-         "LIGHT           INT    NOT NULL);";
+         "LIGHT           INT    NOT NULL," \
+         "TIME       CHAR(30)    NOT NULL);";
 
    /* Execute SQL statement */
    rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);

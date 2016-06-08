@@ -25,7 +25,8 @@ coap_db_management.o: coap_db_management.c /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/select2.h \
  /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/local/include/sqlite3.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/timex.h /usr/local/include/sqlite3.h \
  coap_db_management.h
 
 /usr/include/stdio.h:
@@ -99,6 +100,8 @@ coap_db_management.o: coap_db_management.c /usr/include/stdio.h \
 /usr/include/alloca.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib.h:
+
+/usr/include/x86_64-linux-gnu/bits/timex.h:
 
 /usr/local/include/sqlite3.h:
 
