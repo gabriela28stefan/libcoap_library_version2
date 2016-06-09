@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sqlite3.h>
-
+#include <string.h>
 #include "coap_db_management.h"
 
 /* handler for our database*/
@@ -35,16 +35,21 @@ int open_database() {
 }
 
 
-int create_insert_sql_statement(char* sql, char* mac, int temp, int light, char* timestamp) {
+int create_insert_sql_statement(char* sql, data_t* sensor_data) {
 
 	/* Create SQL statement */
 	   char aux_buffer[80];
+	   char timestamp[TIME_ST];
+	   get_timestamp(timestamp);
+
 
 	   if (!sql)
 		   return -1;
 
-	   char *insert = "INSERT INTO COAP_DATA (MAC,TEMP,LIGHT,TIME) ";
-	   sprintf(aux_buffer, "VALUES ('%s', %d, %d, '%s');", mac, temp, light, timestamp);
+	   char *insert = "INSERT INTO COAP (MAC, TEMP, LIGHT, PRESSURE, HUMIDITY, TIME) ";
+	   sprintf(aux_buffer, "VALUES ('%s', %d, %d, %d, %.03lf, '%s');", sensor_data->mac_addr,
+			   sensor_data->temp, sensor_data->light, sensor_data->pressure,
+			   sensor_data->humidity, timestamp);
 
 	   strcpy(sql, insert);
 	   strcat(sql, aux_buffer);

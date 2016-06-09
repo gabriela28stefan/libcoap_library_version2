@@ -27,6 +27,11 @@
 #include "coap.h"
 #include "coap_list.h"
 
+#include "coap_db_management.h"
+
+#define INSERT_SIZE	 100
+#define RH			1024
+
 int flags = 0;
 
 static unsigned char _token_data[8];
@@ -70,19 +75,6 @@ coap_tick_t obs_wait = 0;               /* timeout for current subscription */
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
-#define MAC_SIZE	20
-
-/* added struct for temp, light*/
-typedef struct data {
-	char 			mac_addr[MAC_SIZE];
-	unsigned int 	id;
-	unsigned int 	temp;
-	unsigned int 	light;
-} data_t;
-
-//handler for our database
-//extern sqlite3 *db;
-
 
 #ifdef __GNUC__
 #define UNUSED_PARAM __attribute__ ((unused))
@@ -97,9 +89,7 @@ static void parse_data(data_t* sensor_data, const unsigned char* buf){
 
 
 	token = strtok(tmp, ",");
-	//printf("Received from node with MAC address: %s\n", token);
-	strcpy(sensor_data->mac_addr, token);//FIXME!!!
-	printf("Received from node with MAC address: %s\n", sensor_data->mac_addr);
+	strcpy(sensor_data->mac_addr, token);
 
 	token = strtok(NULL, ",");
 	sensor_data->id = strtol(token, (char **)NULL, 10);
@@ -110,6 +100,19 @@ static void parse_data(data_t* sensor_data, const unsigned char* buf){
 	token = strtok(NULL, ",");
 	sensor_data->light = strtol(token, (char **)NULL, 10);
 
+	token = strtok(NULL, ",");
+	if (token != NULL)
+		sensor_data->pressure = strtol(token, (char **)NULL, 10);
+	else
+		sensor_data->pressure = 0; //Pa
+
+	token = strtok(NULL, ",");
+	if (token != NULL){
+		int humidity_int = strtol(token, (char **)NULL, 10);
+		sensor_data->humidity = humidity_int / (float)RH;
+	} else {
+		sensor_data->humidity = 0.0f; //%rH
+	}
 	free(tmp);
 }
 
@@ -140,6 +143,7 @@ append_to_output(const unsigned char *data, size_t len) {
     len -= written;
     data += written;
   } while ( written && len );
+  fwrite("\n", 1, 1, file);
   fflush(file);
 
 
@@ -359,6 +363,19 @@ check_token(coap_pdu_t *received) {
     memcmp(received->hdr->token, the_token.s, the_token.length) == 0;
 }
 
+/**
+ * print data from sensors
+ * */
+void print_data(const data_t* from_sensors) {
+	printf("MAC: %s ID: %u t: %u l: %u p %.03lf h: %d\n",
+			from_sensors->mac_addr,
+			from_sensors->id,
+			from_sensors->temp,
+			from_sensors->light,
+			from_sensors->pressure,
+			from_sensors->humidity);
+}
+
 static void
 message_handler(struct coap_context_t *ctx,
                 const coap_endpoint_t *local_interface,
@@ -378,8 +395,8 @@ message_handler(struct coap_context_t *ctx,
 
 #ifndef NDEBUG
   if (LOG_DEBUG <= coap_get_log_level()) {
-//  	  printf("** process incoming %d.%02d response:\n",
-//          (received->hdr->code >> 5), received->hdr->code & 0x1F);
+  	  printf("** process incoming %d.%02d response:\n",
+          (received->hdr->code >> 5), received->hdr->code & 0x1F);
 
   	  coap_show_pdu(received);
   }
@@ -544,31 +561,27 @@ message_handler(struct coap_context_t *ctx,
           return;
         }
       } else {
-    	fprintf(COAP_DEBUG_FD, "Get received data\n");
+		   /* There is no block option set, just read the data and we are done. */
+		   if (coap_get_data(received, &len, &databuf))
+				append_to_output(databuf, len);
 
-    	/* There is no block option set, just read the data and we are done. */
-        if (coap_get_data(received, &len, &databuf))
-        	append_to_output(databuf, len);
+		   data_t from_sensors;
+		   /* parse data from sensors */
+		   parse_data(&from_sensors,databuf);
 
-       data_t from_sensors;
-       /* parse data from sensors */
-       parse_data(&from_sensors,databuf);
-       printf("MAC: %s ID: %u temp: %u and light: %u\n", from_sensors.mac_addr, from_sensors.id, from_sensors.temp, from_sensors.light);
+		   print_data(&from_sensors);
 
-       /* create insert query */
-       char sql[100];
-       char current_t[30];
+		   /* create insert query */
+		   char sql[INSERT_SIZE];
+		   create_insert_sql_statement(sql, &from_sensors);
 
-       get_timestamp(current_t);
-       create_insert_sql_statement(sql, from_sensors.mac_addr, from_sensors.temp, from_sensors.light, current_t);
+		   printf("SQL string is: %s\n", sql);
 
- 	   printf("SQL string is: %s\n", sql);
+		   /* execute insert*/
+		   exec_sql_statement(sql);
 
- 	   /* execute insert*/
- 	   exec_sql_statement(sql);
-
- 	   /* closing the database */
- 	   close_database();
+		   /* closing the database */
+		   close_database();
       }
     }
   } else {      /* no 2.05 */

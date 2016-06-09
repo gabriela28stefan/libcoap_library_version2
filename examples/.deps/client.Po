@@ -65,7 +65,7 @@ client.o: client.c ../coap_config.h /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/syslog.h ../include/coap/mem.h \
  ../include/coap/resource.h ../include/coap/uthash.h \
  ../include/coap/subscribe.h ../include/coap/utlist.h coap_list.h \
- ../include/coap/utlist.h
+ ../include/coap/utlist.h coap_db_management.h
 
 ../coap_config.h:
 
@@ -272,3 +272,5 @@ client.o: client.c ../coap_config.h /usr/include/string.h \
 coap_list.h:
 
 ../include/coap/utlist.h:
+
+coap_db_management.h:
